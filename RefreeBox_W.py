@@ -115,7 +115,7 @@ s2.listen(5)
 
 root = Tk()
 root.title("Refree Box Sneijder")
-root.iconbitmap('Arif/poliban.ico')
+root.iconbitmap('poliban.ico')
 root.geometry('1300x900')
 
 
@@ -124,7 +124,7 @@ Bagian Lapangan,
 - Ukuran Lapangan 600 x 400 | 120cm x 80cm
 """
 
-lapanganImg = PhotoImage(file="Arif/wlyh.png")
+lapanganImg = PhotoImage(file="wlyh.png")
 
 lapangan = Canvas(root, width=700, height=500)
 lapangan.place(x=5,y=0)
@@ -135,13 +135,13 @@ lapangan.create_image(0,0,anchor=NW,image=lapanganImg)
 Bagian Kanan Atas
 - Title
 """
-titleBGImg = PhotoImage(file="Arif/Frame1.png")
+titleBGImg = PhotoImage(file="Frame1.png")
 
 titleBG = Canvas(root, width=580,height=150,bg="#8C98FF")
 titleBG.place(x=710,y=0)
 # titleBG.create_image(0,0,anchor=NW,image=titleBGImg)
 
-plbnImg = PhotoImage(file="Arif/logo.png")
+plbnImg = PhotoImage(file="logo.png")
 
 plbn = Canvas(root, width=120,height=120)
 plbn.place(x=725,y=17)
