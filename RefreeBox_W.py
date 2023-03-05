@@ -2,6 +2,12 @@ from tkinter import *
 import socket   
 from threading import *
 
+'''
+TODO
+
+- bikin agar magenta juga bisa komunikasi dengan server
+- code agar semua pesan yang dikirim client dimunculkan di textbox
+'''
 
 
 """
@@ -67,22 +73,34 @@ def CornerKickCyan():
         listT.insert(0, "Corner Kick Cyan")
 
 
+def HandleClientCyan(client):
+    while True:
+        try:
+            msg = client.recv(1024)
+            print(msg.decode('utf-8'))
+        except:
+            client.close()
+            robot_cyan_clients.remove(client)
+            print(f"{client} disconnected.")
+
+
 def Receiv1():
     global cs1
     while True:
         cs1, address1 = s1.accept()
 
-        full_msg = ''
+        # full_msg = ''
         msg = cs1.recv(1024) # Diterima dalam bentuk byte
         print(f"{address1}: {msg.decode('utf-8')}")
         
-        full_msg += msg.decode("utf-8") # Dirubah menjadi String
+        robot_cyan_clients.append(cs1)
+        thread = Thread(target=HandleClientCyan, args=(cs1,))
+        thread.start()
+        # full_msg += msg.decode("utf-8") # Dirubah menjadi String
         # full_msg = full_msg.rstrip('\0')
         # full_msg = eval(full_msg)
-        print(full_msg)
-        cs1.sendall(bytes("HAII from CS1", "utf-8"))
-        listR.insert(0, "Robot 1: " + full_msg)
-
+        # cs1.sendall(bytes("HAII from CS1", "utf-8"))
+        # listR.insert(0, "Robot 1: " + full_msg)
 
 
 def Receiv2():
@@ -96,19 +114,33 @@ def Receiv2():
         print(full_msg)
         cs2.sendall(bytes("HAII hai from cs2", "utf-8"))
         listR.insert(0, "Robot 2: " + full_msg)
+        robot_magenta_clients.append(cs2)
 
 
-def konek_ke_ip():
+def BroadcastSemua(msg):
+    for client in robot_cyan_clients:
+        client.send(msg)
+    for client in robot_magenta_clients:
+        client.send(msg)
+
+
+def KonekKeIP():
+    # koneksi client ke host referee
     client_ip = Ip_input.get()
-    print(client_ip)
-    
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((client_ip, port1))
+    print(f"terkoneksi dengan {client_ip}")
 
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((client_ip, port1))  
     client.send(host.encode('utf-8'))
     client.close()
+
+
+def PingSemuaKoneksi():
+    BroadcastSemua('PING'.encode('utf-8'))
         
 
+robot_cyan_clients = []
+robot_magenta_clients = []
 
 host = socket.gethostname()
 port1 = 1234
@@ -121,7 +153,6 @@ s1.bind((host,port1))
 s1.listen(5)
 s2.bind((host,port2))
 s2.listen(5)
-
 
 
 root = Tk()
@@ -214,7 +245,7 @@ label1 = Label(root, bg="#F8A990",text="Port IP",fg="black",font=("Helvatica",15
 port_input = Entry(root, width=25,font=(15),bd=4)
 port_input.place(x=845, y=215)
 
-button_submit = Button(root, text= "Submit",bd=4,padx=20, command=konek_ke_ip).place(x=730,y=260)
+button_submit = Button(root, text= "Submit",bd=4,padx=20, command=KonekKeIP).place(x=730,y=260)
 
 """
 Cyan Team
@@ -250,6 +281,7 @@ B_Start = Button(root, text="Start", bd=5,padx=20,font=("Helvatica",13,"bold"),h
 B_Stop = Button(root, text="Stop", bd=5,padx=20,font=("Helvatica",13,"bold"),height=0,bg="#FF5454").place(x=1008,y=360)
 B_TendangM = Button(root, text="Tes Penendang M", bd=5,padx=10,font=("Helvatica",13,"bold"),height=0,bg="#FFF854").place(x=912,y=420)
 B_TendangC = Button(root, text="Tes Penendang C", bd=5,padx=10,font=("Helvatica",13,"bold"),height=0,bg="#FFF854").place(x=912,y=470)
+B_Ping_Semua = Button(root, text="Ping semua", bd=5, padx=10, font=("Helvatica", 13, "bold"), height=0, bg="#FFF854", command=PingSemuaKoneksi).place(x=912, y=520)
 
 """
 Magenta Team
