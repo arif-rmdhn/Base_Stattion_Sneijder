@@ -74,6 +74,7 @@ def Receiv1():
 
         full_msg = ''
         msg = cs1.recv(1024) # Diterima dalam bentuk byte
+        print(f"{address1}: {msg.decode('utf-8')}")
         
         full_msg += msg.decode("utf-8") # Dirubah menjadi String
         # full_msg = full_msg.rstrip('\0')
@@ -96,6 +97,16 @@ def Receiv2():
         cs2.sendall(bytes("HAII hai from cs2", "utf-8"))
         listR.insert(0, "Robot 2: " + full_msg)
 
+
+def konek_ke_ip():
+    client_ip = Ip_input.get()
+    print(client_ip)
+    
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((client_ip, port1))
+
+    client.send(host.encode('utf-8'))
+    client.close()
         
 
 
@@ -203,7 +214,7 @@ label1 = Label(root, bg="#F8A990",text="Port IP",fg="black",font=("Helvatica",15
 port_input = Entry(root, width=25,font=(15),bd=4)
 port_input.place(x=845, y=215)
 
-button_submit = Button(root, text= "Submit",bd=4,padx=20).place(x=730,y=260)
+button_submit = Button(root, text= "Submit",bd=4,padx=20, command=konek_ke_ip).place(x=730,y=260)
 
 """
 Cyan Team
