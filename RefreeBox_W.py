@@ -2,13 +2,6 @@ from tkinter import *
 import socket   
 from threading import *
 
-'''
-TODO
-
-- bikin agar magenta juga bisa komunikasi dengan server
-- code agar semua pesan yang dikirim client dimunculkan di textbox
-'''
-
 
 """
  Start Function
@@ -73,10 +66,12 @@ def CornerKickCyan():
  
 
 def PrintReceiver(msg):
+    print(msg)
     listR.insert(0, msg)
 
 
 def PrintTransreceiver(msg):
+    print(msg)
     listT.insert(0, msg)
 
 
@@ -85,10 +80,8 @@ def HandleClient(client, list_robot_clients):
     while True:
         try:
             msg = client.recv(1024).decode('utf-8')
-            print(msg)
-            listR.insert(0, f"{client.getpeername()}: {msg}")
+            PrintReceiver(f"{client.getpeername()}: {msg}")
         except Exception as exc:
-            print(f"{list_robot_clients[client_index].getpeername()} disconnected.")
             PrintTransreceiver(f"{list_robot_clients[client_index].getpeername()} disconnected.")
             list_robot_clients.pop(client_index)
             client.close()
@@ -115,22 +108,15 @@ def ReceiveConnection(server_socket, list_robotnya):
 
 
 def Receiv1():
-    receive_thread = Thread(target=ReceiveConnection, args=(s1, robot_cyan_clients))
+    receive_thread = Thread(target=ReceiveConnection,
+                            args=(s1, robot_cyan_clients))
     receive_thread.start()
 
 
 def Receiv2():
-    global cs2
-    while True:
-        cs2, address2 = s2.accept()
-        full_msg = ''
-        msg = cs2.recv(1024)
-        print(msg)
-        full_msg += msg.decode("utf-8")
-        print(full_msg)
-        cs2.sendall(bytes("HAII hai from cs2", "utf-8"))
-        listR.insert(0, "Robot 2: " + full_msg)
-        robot_magenta_clients.append(cs2)
+    receive_thread = Thread(target=ReceiveConnection,
+                            args=(s2, robot_magenta_clients))
+    receive_thread.start()
 
 
 def BroadcastSemua(msg):
@@ -144,10 +130,19 @@ def BroadcastSemua(msg):
 def KonekKeIP():
     # koneksi client ke host referee
     client_ip = Ip_input.get()
-    print(f"terkoneksi dengan {client_ip}")
+    client_port_str = port_input.get()
 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((client_ip, port1))  
+    
+    try:
+        client.connect((client_ip, int(client_port_str))) 
+    except Exception as exc:
+        PrintTransreceiver("IP atau port salah.")
+        print(exc)
+        client.close()
+        return
+    
+    PrintTransreceiver(f"Berusaha terkoneksi dengan {client_ip}...")
     client.send(host.encode('utf-8'))
     client.close()
 
