@@ -3,7 +3,7 @@ import socket
 
 def Ping(sc):
     print("PING!")
-    sc.send(f"({IP}): PING!".encode('utf-8'))
+    sc.send(f"PING!".encode('utf-8'))
 
 
 HOST_IP = ''

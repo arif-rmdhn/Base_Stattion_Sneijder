@@ -70,37 +70,53 @@ def CornerKickCyan():
     else:
         cs1.sendall(bytes("Corner Kick Cyan", "utf-8"))
         cs2.sendall(bytes("Corner Kick Cyan", "utf-8"))
-        listT.insert(0, "Corner Kick Cyan")
+ 
+
+def PrintReceiver(msg):
+    listR.insert(0, msg)
 
 
-def HandleClientCyan(client):
+def PrintTransreceiver(msg):
+    listT.insert(0, msg)
+
+
+def HandleClient(client, list_robot_clients):
+    client_index = list_robot_clients.index(client)
     while True:
         try:
-            msg = client.recv(1024)
-            print(msg.decode('utf-8'))
-        except:
+            msg = client.recv(1024).decode('utf-8')
+            print(msg)
+            listR.insert(0, f"{client.getpeername()}: {msg}")
+        except Exception as exc:
+            print(f"{list_robot_clients[client_index].getpeername()} disconnected.")
+            PrintTransreceiver(f"{list_robot_clients[client_index].getpeername()} disconnected.")
+            list_robot_clients.pop(client_index)
             client.close()
-            robot_cyan_clients.remove(client)
-            print(f"{client} disconnected.")
+            break
 
 
-def Receiv1():
-    global cs1
+def ReceiveConnection(server_socket, list_robotnya):
     while True:
-        cs1, address1 = s1.accept()
+        client_socket, address1 = server_socket.accept()
 
-        # full_msg = ''
-        msg = cs1.recv(1024) # Diterima dalam bentuk byte
+        msg = client_socket.recv(1024) # Diterima dalam bentuk byte
+        listR.insert(0, f"{address1}: {msg.decode('utf-8')}")
         print(f"{address1}: {msg.decode('utf-8')}")
         
-        robot_cyan_clients.append(cs1)
-        thread = Thread(target=HandleClientCyan, args=(cs1,))
+        list_robotnya.append(client_socket)
+        thread = Thread(target=HandleClient, args=(client_socket, list_robotnya))
         thread.start()
+        
+        # full_msg = ''
         # full_msg += msg.decode("utf-8") # Dirubah menjadi String
         # full_msg = full_msg.rstrip('\0')
         # full_msg = eval(full_msg)
-        # cs1.sendall(bytes("HAII from CS1", "utf-8"))
-        # listR.insert(0, "Robot 1: " + full_msg)
+        # client_socket.sendall(bytes("HAII from client_socket", "utf-8"))
+
+
+def Receiv1():
+    receive_thread = Thread(target=ReceiveConnection, args=(s1, robot_cyan_clients))
+    receive_thread.start()
 
 
 def Receiv2():
@@ -118,6 +134,7 @@ def Receiv2():
 
 
 def BroadcastSemua(msg):
+    listT.insert(0, msg)
     for client in robot_cyan_clients:
         client.send(msg)
     for client in robot_magenta_clients:
