@@ -3,7 +3,6 @@ import socket
 from threading import *
 
 
-
 """
  Start Function
 """
@@ -64,40 +63,96 @@ def CornerKickCyan():
     else:
         cs1.sendall(bytes("Corner Kick Cyan", "utf-8"))
         cs2.sendall(bytes("Corner Kick Cyan", "utf-8"))
-        listT.insert(0, "Corner Kick Cyan")
+ 
+
+def PrintReceiver(msg):
+    print(msg)
+    listR.insert(0, msg)
+
+
+def PrintTransreceiver(msg):
+    print(msg)
+    listT.insert(0, msg)
+
+
+def HandleClient(client, list_robot_clients):
+    client_index = list_robot_clients.index(client)
+    while True:
+        try:
+            msg = client.recv(1024).decode('utf-8')
+            PrintReceiver(f"{client.getpeername()}: {msg}")
+        except Exception as exc:
+            PrintTransreceiver(f"{list_robot_clients[client_index].getpeername()} disconnected.")
+            list_robot_clients.pop(client_index)
+            client.close()
+            break
+
+
+def ReceiveConnection(server_socket, list_robotnya):
+    while True:
+        client_socket, address1 = server_socket.accept()
+
+        msg = client_socket.recv(1024) # Diterima dalam bentuk byte
+        listR.insert(0, f"{address1}: {msg.decode('utf-8')}")
+        print(f"{address1}: {msg.decode('utf-8')}")
+        
+        list_robotnya.append(client_socket)
+        thread = Thread(target=HandleClient, args=(client_socket, list_robotnya))
+        thread.start()
+        
+        # full_msg = ''
+        # full_msg += msg.decode("utf-8") # Dirubah menjadi String
+        # full_msg = full_msg.rstrip('\0')
+        # full_msg = eval(full_msg)
+        # client_socket.sendall(bytes("HAII from client_socket", "utf-8"))
 
 
 def Receiv1():
-    global cs1
-    while True:
-        cs1, address1 = s1.accept()
-
-        full_msg = ''
-        msg = cs1.recv(1024) # Diterima dalam bentuk byte
-        
-        full_msg += msg.decode("utf-8") # Dirubah menjadi String
-        # full_msg = full_msg.rstrip('\0')
-        # full_msg = eval(full_msg)
-        print(full_msg)
-        cs1.sendall(bytes("HAII from CS1", "utf-8"))
-        listR.insert(0, "Robot 1: " + full_msg)
-
+    receive_thread = Thread(target=ReceiveConnection,
+                            args=(s1, robot_cyan_clients))
+    receive_thread.start()
 
 
 def Receiv2():
-    global cs2
-    while True:
-        cs2, address2 = s2.accept()
-        full_msg = ''
-        msg = cs2.recv(1024)
-        print(msg)
-        full_msg += msg.decode("utf-8")
-        print(full_msg)
-        cs2.sendall(bytes("HAII hai from cs2", "utf-8"))
-        listR.insert(0, "Robot 2: " + full_msg)
+    receive_thread = Thread(target=ReceiveConnection,
+                            args=(s2, robot_magenta_clients))
+    receive_thread.start()
 
+
+def BroadcastSemua(msg):
+    listT.insert(0, msg)
+    for client in robot_cyan_clients:
+        client.send(msg)
+    for client in robot_magenta_clients:
+        client.send(msg)
+
+
+def KonekKeIP():
+    # koneksi client ke host referee
+    client_ip = Ip_input.get()
+    client_port_str = port_input.get()
+
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    try:
+        client.connect((client_ip, int(client_port_str))) 
+    except Exception as exc:
+        PrintTransreceiver("IP atau port salah.")
+        print(exc)
+        client.close()
+        return
+    
+    PrintTransreceiver(f"Berusaha terkoneksi dengan {client_ip}...")
+    client.send(host.encode('utf-8'))
+    client.close()
+
+
+def PingSemuaKoneksi():
+    BroadcastSemua('PING'.encode('utf-8'))
         
 
+robot_cyan_clients = []
+robot_magenta_clients = []
 
 host = socket.gethostname()
 port1 = 1234
@@ -110,7 +165,6 @@ s1.bind((host,port1))
 s1.listen(5)
 s2.bind((host,port2))
 s2.listen(5)
-
 
 
 root = Tk()
@@ -203,7 +257,7 @@ label1 = Label(root, bg="#F8A990",text="Port IP",fg="black",font=("Helvatica",15
 port_input = Entry(root, width=25,font=(15),bd=4)
 port_input.place(x=845, y=215)
 
-button_submit = Button(root, text= "Submit",bd=4,padx=20).place(x=730,y=260)
+button_submit = Button(root, text= "Submit",bd=4,padx=20, command=KonekKeIP).place(x=730,y=260)
 
 """
 Cyan Team
@@ -239,6 +293,7 @@ B_Start = Button(root, text="Start", bd=5,padx=20,font=("Helvatica",13,"bold"),h
 B_Stop = Button(root, text="Stop", bd=5,padx=20,font=("Helvatica",13,"bold"),height=0,bg="#FF5454").place(x=1008,y=360)
 B_TendangM = Button(root, text="Tes Penendang M", bd=5,padx=10,font=("Helvatica",13,"bold"),height=0,bg="#FFF854").place(x=912,y=420)
 B_TendangC = Button(root, text="Tes Penendang C", bd=5,padx=10,font=("Helvatica",13,"bold"),height=0,bg="#FFF854").place(x=912,y=470)
+B_Ping_Semua = Button(root, text="Ping semua", bd=5, padx=10, font=("Helvatica", 13, "bold"), height=0, bg="#FFF854", command=PingSemuaKoneksi).place(x=912, y=520)
 
 """
 Magenta Team
