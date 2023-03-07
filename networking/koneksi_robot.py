@@ -15,8 +15,8 @@ def Ping(sc):
 
 HOST_IP = ''
 
-IP = 'localhost'  # Gunakan ini jika ingin mentes di mesin lokal
-#IP = socket.gethostname()  # gunakan ini jika ini ada di mesin lain
+# IP = 'localhost'  # Gunakan ini jika ingin mentes di mesin lokal
+IP = socket.gethostname()  # gunakan ini jika ini ada di mesin lain
 PORT = 1234  # portnya tergantung dari refree boxnya, kalau bisa nanti nanti pastikan mau make port apa
 
 #  buat server dulu agar bisa di konek ke refree box
