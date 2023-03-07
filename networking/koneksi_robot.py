@@ -1,6 +1,13 @@
 import socket
 
 
+def ReceiveCommand(msg):
+    if msg == 'PING':
+        Ping(client)
+    else:
+        print(f"\"{msg}\" Message tidak dimengerti")
+        client.send("Message tidak dimengerti".encode('utf-8'))
+
 def Ping(sc):
     print("PING!")
     sc.send(f"PING!".encode('utf-8'))
@@ -37,12 +44,7 @@ client.send(f"Terkoneksi dengan {IP}".encode('utf-8'))
 while True:
     try:
         msg = client.recv(1024).decode('utf-8')
-
-        if msg == 'PING':
-            Ping(client)
-        else:
-            print(f"\"{msg}\" Message tidak dimengerti")
-            client.send("Message tidak dimengerti".encode('utf-8'))
+        ReceiveCommand(msg)
     except Exception as exc:
         print(f"ERROR: Program di stop tiba-tiba\nexception: {exc}")
         client.close()
